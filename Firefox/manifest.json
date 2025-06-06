@@ -1,0 +1,18 @@
+{
+  "manifest_version": 2,
+  "name": "YouTube Embed Player Override",
+  "description": "Replaces YouTube's native player with the embedded player inline.",
+  "version": "1.0",
+  "permissions": ["https://www.youtube.com/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/watch*"],
+      "js": ["embed-player.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
