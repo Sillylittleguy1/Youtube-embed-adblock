@@ -1,4 +1,15 @@
-﻿(function() {
+// ==UserScript==
+// @name         YouTube Embed Adblock
+// @namespace    https://www.youtube.com
+// @version      2.1
+// @description  Block ads with identical embed player + bevel edges
+// @license      MIT
+// @match        https://www.youtube.com/watch?*
+// @grant        none
+// @run-at       document-idle
+// ==/UserScript==
+
+(function() {
     'use strict';
     console.log("[YT-Embed] Script Loaded");
 
