@@ -8,7 +8,7 @@
 // @grant        none
 // @run-at       document-idle
 // @author       Cave johnson
-// @downloadURL  https://example.com/my-script.user.js
+// @downloadURL  https://raw.githubusercontent.com/Sillylittleguy1/Youtube-enbed-adblock/refs/heads/main/embed-player.js
 // @updateURL    https://raw.githubusercontent.com/Sillylittleguy1/Youtube-enbed-adblock/refs/heads/main/embed-player.js
 // ==/UserScript==
 
