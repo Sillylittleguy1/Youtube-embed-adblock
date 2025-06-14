@@ -1,16 +1,17 @@
 // ==UserScript==
 // @name         YouTube Embed Adblock
-// @namespace    https://raw.githubusercontent.com/Sillylittleguy1/Youtube-enbed-adblock
+// @namespace    https://github.com/Sillylittleguy1/Youtube-embed-adblock
 // @version      2.3
 // @description  Block ads with identical embed player
 // @license      MIT
 // @match        https://www.youtube.com/watch?*
+// @icon         https://github.com/Sillylittleguy1/Youtube-embed-adblock/blob/main/Firefox/icon128.png?raw=true
 // @grant        none
 // @run-at       document-idle
 // @author       Cave johnson
 // @downloadURL  https://raw.githubusercontent.com/Sillylittleguy1/Youtube-enbed-adblock/refs/heads/main/embed-player.js
 // @updateURL    https://raw.githubusercontent.com/Sillylittleguy1/Youtube-enbed-adblock/refs/heads/main/embed-player.js
-// @supportURL   https://raw.githubusercontent.com/Sillylittleguy1/Youtube-enbed-adblock
+// @supportURL   https://github.com/Sillylittleguy1/Youtube-embed-adblock/issues/new
 // ==/UserScript==
 
 (function () {
@@ -28,14 +29,14 @@
     };
 
     // ========================
-    // Player Creation (Blob Embed)
+    // Enhanced Player Creation (Blob Embed)
     // ========================
     function createEmbedPlayer(videoId) {
         const container = document.createElement('div');
         container.id = config.playerId;
         container.className = config.embedClass;
 
-        // styling
+        // Bevel styling
         container.style.cssText = `
             min-height: ${config.defaultHeight};
             height: calc(100vw * ${1 / config.aspectRatio});
@@ -79,7 +80,7 @@
     }
 
     // ========================
-    // Player Replacement
+    // Robust Player Replacement
     // ========================
     function replacePlayer() {
         const videoId = new URLSearchParams(window.location.search).get('v');
