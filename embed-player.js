@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         YouTube Embed Adblock
-// @namespace    https://www.youtube.com
-// @version      2.2
-// @description  Block ads with identical embed player + bevel edges
+// @namespace    https://raw.githubusercontent.com/Sillylittleguy1/Youtube-enbed-adblock
+// @version      2.3
+// @description  Block ads with identical embed player
 // @license      MIT
 // @match        https://www.youtube.com/watch?*
 // @grant        none
@@ -10,9 +10,10 @@
 // @author       Cave johnson
 // @downloadURL  https://raw.githubusercontent.com/Sillylittleguy1/Youtube-enbed-adblock/refs/heads/main/embed-player.js
 // @updateURL    https://raw.githubusercontent.com/Sillylittleguy1/Youtube-enbed-adblock/refs/heads/main/embed-player.js
+// @supportURL   https://raw.githubusercontent.com/Sillylittleguy1/Youtube-enbed-adblock
 // ==/UserScript==
 
-(function() {
+(function () {
     'use strict';
     console.log("[YT-Embed] Script Loaded");
 
@@ -20,24 +21,24 @@
         playerId: 'player',
         embedClass: 'custom-youtube-embed',
         defaultHeight: '390px',
-        aspectRatio: 16/9,
+        aspectRatio: 16 / 9,
         maxHeightOffset: 120,
         autoplay: true,
         bevelSize: '12px'
     };
 
     // ========================
-    // Enhanced Player Creation
+    // Player Creation (Blob Embed)
     // ========================
     function createEmbedPlayer(videoId) {
         const container = document.createElement('div');
         container.id = config.playerId;
         container.className = config.embedClass;
 
-        // Bevel styling
+        // styling
         container.style.cssText = `
             min-height: ${config.defaultHeight};
-            height: calc(100vw * ${1/config.aspectRatio});
+            height: calc(100vw * ${1 / config.aspectRatio});
             max-height: calc(100vh - ${config.maxHeightOffset}px);
             width: 100%;
             position: relative;
@@ -47,11 +48,24 @@
             box-shadow: inset 0 0 ${config.bevelSize} rgba(255, 255, 255, 0.1);
         `;
 
-        const iframe = document.createElement('iframe');
-        iframe.src = `https://www.youtube.com/embed/${videoId}?${
+        const embedUrl = `https://www.youtube.com/embed/${videoId}?${
             config.autoplay ? 'autoplay=1&' : ''
         }rel=0&modestbranding=1&iv_load_policy=3&disablekb=1`;
 
+        const shellHtml = `
+            <!DOCTYPE html>
+            <html>
+            <body style="margin:0;background:#000;">
+                <iframe src="${embedUrl}" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" style="border:none;width:100vw;height:100vh;"></iframe>
+            </body>
+            </html>
+        `;
+
+        const blob = new Blob([shellHtml], { type: 'text/html' });
+        const blobUrl = URL.createObjectURL(blob);
+
+        const iframe = document.createElement('iframe');
+        iframe.src = blobUrl;
         iframe.style.cssText = `
             width: 100%;
             height: 100%;
@@ -59,35 +73,13 @@
             display: block;
         `;
         iframe.allowFullscreen = true;
-        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
-
-        // Double-layer overlay removal
-        iframe.onload = function() {
-            try {
-                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-                const style = iframeDoc.createElement('style');
-                style.textContent = `
-                    .ytp-pause-overlay-container,
-                    .ytp-pause-overlay,
-                    .ytp-scroll-min {
-                        display: none !important;
-                    }
-                    .html5-video-player.ad-showing video {
-                        visibility: visible !important;
-                    }
-                `;
-                iframeDoc.head.appendChild(style);
-            } catch (e) {
-                console.log("[YT-Embed] Iframe styling skipped (cross-origin)");
-            }
-        };
 
         container.appendChild(iframe);
         return container;
     }
 
     // ========================
-    // Robust Player Replacement
+    // Player Replacement
     // ========================
     function replacePlayer() {
         const videoId = new URLSearchParams(window.location.search).get('v');
@@ -96,20 +88,52 @@
         const oldPlayer = document.getElementById(config.playerId);
         if (!oldPlayer || oldPlayer.classList.contains(config.embedClass)) return;
 
-        console.log("[YT-Embed] Replacing player...");
+        console.log("[YT-Embed] Replacing player with blob-embed...");
         oldPlayer.parentNode.replaceChild(createEmbedPlayer(videoId), oldPlayer);
     }
+
+    function muteAllAudioContexts() {
+    if (!window.AudioContext && !window.webkitAudioContext) return;
+
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+
+    // Monkeypatch AudioContext constructor to track instances
+    const originalCtor = AudioCtx;
+    const contexts = new Set();
+
+    function PatchedAudioContext(...args) {
+        const ctx = new originalCtor(...args);
+        contexts.add(ctx);
+        // Try suspending immediately
+        ctx.suspend().catch(() => {});
+        return ctx;
+    }
+    PatchedAudioContext.prototype = originalCtor.prototype;
+    window.AudioContext = PatchedAudioContext;
+    window.webkitAudioContext = PatchedAudioContext;
+
+    // Also suspend any existing contexts
+    if (AudioCtx.prototype && AudioCtx.prototype.state) {
+        try {
+            contexts.forEach(ctx => ctx.suspend());
+        } catch {}
+    }
+
+    // As an extra fallback, override resume and createGain to block audio
+    AudioCtx.prototype.resume = () => Promise.resolve();
+    AudioCtx.prototype.createGain = () => {
+        return { gain: { value: 0, setValueAtTime() {}, linearRampToValueAtTime() {} } };
+    };
+}
+
 
     // ========================
     // Chrome/Firefox Compatibility
     // ========================
     function init() {
-        // Immediate attempt
         replacePlayer();
+        muteAllAudioContexts();
 
-        // Fallback polling for Chrome
-        let pollCount = 0;
-        // Poll for player (Chrome fallback)
         const pollInterval = setInterval(() => {
             if (document.getElementById(config.playerId)) {
                 replacePlayer();
@@ -117,7 +141,6 @@
             }
         }, 100);
 
-        // MutationObserver for SPA
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 if (mutation.addedNodes) replacePlayer();
@@ -126,16 +149,14 @@
         observer.observe(document.body, { childList: true, subtree: true });
     }
 
-    // Start with DOM readiness check
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
-        setTimeout(init, 300); // Chrome safety delay
+        setTimeout(init, 300);
     }
 
-    // SPA navigation handling
     const nativePushState = history.pushState;
-    history.pushState = function() {
+    history.pushState = function () {
         nativePushState.apply(this, arguments);
         setTimeout(replacePlayer, 800);
     };
