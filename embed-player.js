@@ -29,7 +29,7 @@
     };
 
     // ========================
-    // Enhanced Player Creation (Blob Embed)
+    // Player Creation (Blob Embed)
     // ========================
     function createEmbedPlayer(videoId) {
         const container = document.createElement('div');
@@ -80,7 +80,7 @@
     }
 
     // ========================
-    // Robust Player Replacement
+    // Player Replacement
     // ========================
     function replacePlayer() {
         const videoId = new URLSearchParams(window.location.search).get('v');
