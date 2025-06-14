@@ -11,7 +11,7 @@ A: Because its identical to the original player in both visuals and functionalit
 
 Q: DoES iT wOrK On ChROme?
 
-A: No, as chrome is a bitch-ass browser that stops any similar script so google can make another dollar.
+A: Yes, depite it being the worst browser in existance it works.
 
 
 
