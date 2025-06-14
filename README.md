@@ -1,4 +1,4 @@
-# Youtube-enbed-adblock
+# Youtube-embed-adblock
 blocks YT ads by replacing the player with a embed one
 
 +++++++++Q&A+++++++++
